@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>婚礼请帖</title>
+    <title>婚礼邀请 · 吴伟彰 & 刘彩萍</title>
     <style>
-        /* ===== 你原来的代码，一点没改 ===== */
+        /* ===== 全局重置 & 基础样式 ===== */
         * {
             margin: 0;
             padding: 0;
@@ -18,6 +18,7 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            font-family: 'Ma Shan Zheng', 'STKaiti', 'KaiTi', serif;
         }
 
         .page-wrapper {
@@ -28,59 +29,48 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
             cursor: pointer;
             position: relative;
+            user-select: none;
         }
 
-        /* ===== 新增：页面容器（用来叠放两页） ===== */
         .pages-container {
             position: relative;
             width: 100%;
             height: 780px;
         }
 
-        /* ===== 第一页：你原来的代码，完全保留 ===== */
-        .page-1 {
-            width: 100%;
-            height: 780px;
-            position: relative;
-            overflow: hidden;
-            background: #7C0414;
-            transition: opacity 0.6s ease, transform 0.6s ease;
-        }
-
-        /* 第一页隐藏时（翻走） */
-        .page-1.hide {
-            opacity: 0;
-            transform: scale(0.92);
-            pointer-events: none;
-        }
-
-        /* ===== 第二页（新增） ===== */
-        .page-2 {
+        /* ===== 所有页面共享样式 ===== */
+        .page {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: #7C0414;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
+            overflow: hidden;
+            transition: opacity 0.6s ease, transform 0.6s ease;
+            background: #7C0414;
+            padding: 20px;
+        }
+
+        /* 页面默认状态 */
+        .page:not(.active) {
             opacity: 0;
             transform: scale(0.92);
             pointer-events: none;
-            transition: opacity 0.6s ease, transform 0.6s ease;
             z-index: 1;
         }
 
-        /* 第二页显示时 */
-        .page-2.show {
+        .page.active {
             opacity: 1;
             transform: scale(1);
             pointer-events: auto;
-            z-index: 3;
+            z-index: 10;
         }
 
-        /* ===== 你原来的背景图层（完全保留） ===== */
+        /* ===== 背景图层 ===== */
         .bg-layer {
             position: absolute;
             top: 0;
@@ -94,97 +84,528 @@
             background-repeat: no-repeat;
         }
 
-        .layer-1 {
-            background-image: url('https://raw.githubusercontent.com/Leviredtea/Wedding/main/BG_0.png');
-            opacity: 1;
+        .bg-layer.bottom {
+            z-index: 1;
         }
-
-        .layer-2 {
-            background-image: url('https://raw.githubusercontent.com/Leviredtea/Wedding/main/BG_1.png');
-            opacity: 1;
-            animation: slideInFromLeft 1.2s ease forwards;
-        }
-
-        @keyframes slideInFromLeft {
-            0% {
-                transform: translateX(-100%);
-                opacity: 0;
-            }
-            100% {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        /* ===== 第二页内容 ===== */
-        .test-text {
-            font-size: 100px;
-            color: #F5BE97;
-            letter-spacing: 10px;
-            position: relative;
+        .bg-layer.top {
             z-index: 2;
-            font-family: 'Ma Shan Zheng', 'STKaiti', 'KaiTi', serif;
         }
 
+        .page-content {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            color: #F5BE97;
+        }
+
+        /* ===== 图层专用动画 ===== */
+        @keyframes slideInLeft {
+            0% { transform: translateX(-100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        .anim-slide-left {
+            animation: slideInLeft 1.2s ease forwards;
+        }
+
+        @keyframes slideInUp {
+            0% { transform: translateY(100%); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        .anim-slide-up {
+            animation: slideInUp 1.2s ease forwards;
+        }
+
+        @keyframes fadeInPop {
+            0% { opacity: 0; transform: scale(0.85); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .anim-fade-pop {
+            animation: fadeInPop 1.2s ease forwards;
+        }
+
+        /* ===== 第2页和第3页：放大10%（从100% → 110%） ===== */
+        .page-2-top {
+            background-size: 110% auto !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+        }
+
+        /* ===== 第4页：地图按钮 ===== */
+        .map-button {
+            display: inline-block;
+            margin: 8px 10px;
+            padding: 14px 28px;
+            background: rgba(245, 190, 151, 0.15);
+            border: 1px solid rgba(245, 190, 151, 0.3);
+            border-radius: 40px;
+            color: #F5BE97;
+            text-decoration: none;
+            font-size: 16px;
+            letter-spacing: 2px;
+            transition: background 0.3s;
+            font-family: 'Segoe UI', sans-serif;
+            position: relative;
+            z-index: 5;
+        }
+        .map-button:hover {
+            background: rgba(245, 190, 151, 0.25);
+        }
+        .map-button i {
+            margin-right: 8px;
+        }
+
+        /* 第4页：venue照片 */
+        .venue-image {
+            width: 80%;
+            max-width: 300px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(245, 190, 151, 0.2);
+            position: relative;
+            z-index: 5;
+        }
+
+        /* 第4页：标题 */
+        .venue-title {
+            font-family: 'Ma Shan Zheng', 'STKaiti', 'KaiTi', serif;
+            font-size: 24px;
+            letter-spacing: 8px;
+            color: #F5BE97;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 5;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        /* ===== 第6页：RSVP 表单 ===== */
+        .rsvp-form {
+            width: 100%;
+            max-width: 360px;
+            text-align: left;
+            font-family: 'Segoe UI', 'PingFang SC', sans-serif;
+        }
+        .rsvp-form .form-title {
+            text-align: center;
+            font-family: 'Ma Shan Zheng', 'STKaiti', serif;
+            letter-spacing: 4px;
+            margin-bottom: 20px;
+        }
+        .rsvp-form .form-title small {
+            display: block;
+            font-size: 13px;
+            opacity: 0.7;
+            letter-spacing: 1px;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .form-group {
+            margin-bottom: 14px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: #F5BE97;
+            margin-bottom: 4px;
+            opacity: 0.85;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid rgba(245, 190, 151, 0.2);
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #F5BE97;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #F5BE97;
+        }
+        .form-group input::placeholder {
+            color: rgba(245, 190, 151, 0.4);
+        }
+        .form-group select option {
+            background: #2c1810;
+            color: #F5BE97;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .extra-fields {
+            display: none;
+            margin-top: 6px;
+            padding-top: 10px;
+            border-top: 1px dashed rgba(245, 190, 151, 0.15);
+        }
+        .extra-fields.show {
+            display: block;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid rgba(245, 190, 151, 0.3);
+            border-radius: 40px;
+            background: rgba(245, 190, 151, 0.12);
+            color: #F5BE97;
+            font-size: 16px;
+            letter-spacing: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-family: 'Segoe UI', sans-serif;
+            margin-top: 6px;
+        }
+        .submit-btn:hover {
+            background: rgba(245, 190, 151, 0.2);
+        }
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .form-status {
+            text-align: center;
+            margin-top: 12px;
+            font-size: 14px;
+            min-height: 24px;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        /* ===== 响应式 ===== */
         @media (max-width: 440px) {
-            .pages-container,
-            .page-1 {
+            .page-wrapper {
+                width: 100%;
+                border-radius: 14px;
+            }
+            .pages-container {
                 height: 70vh;
                 min-height: 560px;
             }
-            .test-text {
-                font-size: 60px;
+            .page {
+                padding: 16px;
+            }
+            .map-button {
+                padding: 10px 18px;
+                font-size: 14px;
+            }
+            .rsvp-form {
+                max-width: 100%;
+            }
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            .venue-image {
+                width: 90%;
+            }
+            .venue-title {
+                font-size: 20px;
+                letter-spacing: 6px;
             }
         }
     </style>
 </head>
 <body>
 
-    <div class="page-wrapper" id="wrapper">
-
+    <div class="page-wrapper" id="app">
         <div class="pages-container">
 
-            <!-- ===== 第一页：你原来的代码，完全没动 ===== -->
-            <div class="page-1" id="page1">
-                <div class="bg-layer layer-1"></div>
-                <div class="bg-layer layer-2"></div>
+            <!-- =========================================================
+            第1页
+            ========================================================= -->
+            <div class="page active" data-page="1">
+                <div class="bg-layer bottom" style="background-image: url('https://raw.githubusercontent.com/Leviredtea/Wedding/main/PG1_0.png');"></div>
+                <div class="bg-layer top anim-slide-left" style="background-image: url('https://raw.githubusercontent.com/Leviredtea/Wedding/main/PG1_1.png');"></div>
             </div>
 
-            <!-- ===== 第二页：新增 ===== -->
-            <div class="page-2" id="page2">
-                <div class="test-text">Test</div>
+            <!-- =========================================================
+            第2页：放大10%
+            ========================================================= -->
+            <div class="page" data-page="2">
+                <div class="bg-layer bottom" style="background-image: url('https://raw.githubusercontent.com/Leviredtea/Wedding/main/PG2_0.png');"></div>
+                <div class="bg-layer top anim-slide-up page-2-top" style="background-image: url('https://raw.githubusercontent.com/Leviredtea/Wedding/main/PG2_1.png');"></div>
             </div>
 
-        </div>
+            <!-- =========================================================
+            第3页：放大10%
+            ========================================================= -->
+            <div class="page" data-page="3">
+                <div class="bg-layer bottom" style="background-image: url('https://raw.githubusercontent.com/Leviredtea/Wedding/main/PG2_0.png');"></div>
+                <div class="bg-layer top anim-fade-pop page-2-top" style="background-image: url('https://raw.githubusercontent.com/Leviredtea/Wedding/main/PG3_1.png');"></div>
+            </div>
 
-    </div>
+            <!-- =========================================================
+            第4页：标题 + 照片 + 地图按钮
+            ========================================================= -->
+            <div class="page" data-page="4">
+                <div class="bg-layer" style="background-image: url('https://raw.githubusercontent.com/Leviredtea/Wedding/main/PG4_0.png');"></div>
+                <div class="page-content" style="justify-content: flex-end; padding-bottom: 60px;">
+                    <div class="venue-title">- 喜宴地点 -</div>
+                    <img class="venue-image" src="https://raw.githubusercontent.com/Leviredtea/Wedding/main/Location.png" alt="御善阁宴会厅">
+                    <div>
+                        <a class="map-button" href="https://maps.app.goo.gl/oghpkWLcgiaERXkc7?g_st=aw" target="_blank" rel="noopener">
+                            <i>📍</i> Google Map
+                        </a>
+                        <a class="map-button" href="https://waze.com/ul/hw281hpefv" target="_blank" rel="noopener">
+                            <i>🧭</i> Waze
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =========================================================
+            第5页：底层 PG2_0.png + 中间 Couple.png (120%) + 顶层 Words.png (95%)
+            ========================================================= -->
+            <div class="page" data-page="5">
+                <!-- 底层：无动画 -->
+                <div class="bg-layer bottom" style="background-image: url('https://raw.githubusercontent.com/Leviredtea/Wedding/main/PG2_0.png');"></div>
+                <!-- 中间层：Couple.png，浮现动画，120% -->
+                <div class="bg-layer top anim-fade-pop" style="background-image: url('https://raw.githubusercontent.com/Leviredtea/Wedding/main/Couple.png'); background-size: 120% auto !important; background-position: center !important; background-repeat: no-repeat !important; z-index: 2;"></div>
+                <!-- 顶层：Words.png，浮现动画（延迟0.2s），95% -->
+                <div class="bg-layer top" style="background-image: url('https://raw.githubusercontent.com/Leviredtea/Wedding/main/Words.png'); background-size: 95% auto !important; background-position: center !important; background-repeat: no-repeat !important; z-index: 3; animation: fadeInPop 1.2s ease 0.2s forwards; opacity: 0;"></div>
+            </div>
+
+            <!-- =========================================================
+            第6页：RSVP 表单（最后一页，禁用翻页）
+            ========================================================= -->
+            <div class="page" data-page="6">
+                <div class="page-content" style="justify-content: flex-start; padding-top: 20px; overflow-y: auto;">
+
+                    <div style="width:100%; max-width:380px; text-align:center; margin-bottom:6px;">
+                        <h2 style="font-family:'Ma Shan Zheng','STKaiti',serif; font-size:26px; letter-spacing:8px; color:#F5BE97; margin:0 0 4px 0; font-weight:400;">诚邀您出席</h2>
+                        <p style="font-size:13px; letter-spacing:3px; color:#F5BE97; opacity:0.7; margin:0; font-family:'Segoe UI',sans-serif;">PLEASE CONFIRM YOUR ATTENDANCE</p>
+                    </div>
+
+                    <div class="rsvp-form">
+                        <p style="text-align:center; font-size:14px; color:#F5BE97; opacity:0.8; margin-bottom:14px; font-family:'Segoe UI',sans-serif;">
+                            请填写以下资料，方便我们安排座位。<br>
+                            <span style="font-size:12px; opacity:0.6;">Please complete the form below so we can arrange the seating.</span>
+                        </p>
+
+                        <form id="rsvpForm">
+                            <div class="form-group">
+                                <label>姓名 Name</label>
+                                <input type="text" id="guestName" placeholder="请输入姓名" required>
+                            </div>
+                            <div class="form-group">
+                                <label>联络号码 Contact Number</label>
+                                <input type="tel" id="guestPhone" placeholder="请输入手机号码" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label>出席 Attendance</label>
+                                <select id="attendanceSelect" required>
+                                    <option value="">请选择 / Please select</option>
+                                    <option value="出席 Attending">出席 Attending</option>
+                                    <option value="不出席 Not Attending">不出席 Not Attending</option>
+                                </select>
+                            </div>
+
+                            <div class="extra-fields" id="extraFields">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>成人 Adult</label>
+                                        <input type="number" id="adultCount" min="0" value="1">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>小孩 Child</label>
+                                        <input type="number" id="childCount" min="0" value="0">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>用餐选择 Meal Preference</label>
+                                    <select id="mealPreference">
+                                        <option value="素食者 Vegetarian">素食者 Vegetarian</option>
+                                        <option value="非素食者 Non-Vegetarian">非素食者 Non-Vegetarian</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>备注 Remarks</label>
+                                    <input type="text" id="remarks" placeholder="其他需要告诉我们的事项">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="submit-btn" id="submitBtn">提交回复 Submit RSVP</button>
+                            <div class="form-status" id="formStatus"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /pages-container -->
+    </div><!-- /page-wrapper -->
 
     <script>
-        const wrapper = document.getElementById('wrapper');
-        const page1 = document.getElementById('page1');
-        const page2 = document.getElementById('page2');
+        // ============================================================
+        //  1. 翻页逻辑（左右点击切换）
+        // ============================================================
 
-        let isFlipping = false;
-        let isPage2Visible = false;
+        const app = document.getElementById('app');
+        const pages = document.querySelectorAll('.page');
+        let currentPage = 0;
+        let isTransitioning = false;
 
-        wrapper.addEventListener('click', function() {
-            if (isFlipping) return;
-            isFlipping = true;
+        function showPage(index) {
+            if (isTransitioning || index === currentPage) return;
+            if (index < 0 || index >= pages.length) return;
+            
+            isTransitioning = true;
 
-            if (!isPage2Visible) {
-                page1.classList.add('hide');
-                page2.classList.add('show');
-                isPage2Visible = true;
-            } else {
-                page1.classList.remove('hide');
-                page2.classList.remove('show');
-                isPage2Visible = false;
-            }
+            pages.forEach((p, i) => {
+                p.classList.remove('active');
+            });
+
+            pages[index].classList.add('active');
+            currentPage = index;
 
             setTimeout(() => {
-                isFlipping = false;
-            }, 600);
+                isTransitioning = false;
+            }, 650);
+        }
+
+        // 点击翻页：根据点击位置判断左右
+        app.addEventListener('click', function(e) {
+            // 防止点击表单内元素触发翻页
+            if (e.target.closest('form') || 
+                e.target.closest('.map-button') || 
+                e.target.closest('.venue-image') || 
+                e.target.closest('.venue-title') ||
+                e.target.closest('input') ||
+                e.target.closest('select') ||
+                e.target.closest('button')) {
+                return;
+            }
+
+            if (isTransitioning) return;
+
+            // ★★★ 第6页（索引5）禁用所有翻页 ★★★
+            if (currentPage === 5) {
+                return;
+            }
+
+            // 获取点击位置相对于页面宽度的百分比
+            const rect = app.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width;
+
+            if (x < 0.4) {
+                // 点击左侧 → 上一页
+                if (currentPage > 0) {
+                    showPage(currentPage - 1);
+                }
+            } else if (x > 0.6) {
+                // 点击右侧 → 下一页
+                if (currentPage < pages.length - 1) {
+                    showPage(currentPage + 1);
+                }
+            }
+            // 中间40%-60%区域不触发翻页，避免误触
         });
+
+        // ============================================================
+        //  2. RSVP 表单逻辑
+        // ============================================================
+
+        const attendanceSelect = document.getElementById('attendanceSelect');
+        const extraFields = document.getElementById('extraFields');
+        const rsvpForm = document.getElementById('rsvpForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const statusDiv = document.getElementById('formStatus');
+
+        attendanceSelect.addEventListener('change', function() {
+            if (this.value === '出席 Attending') {
+                extraFields.classList.add('show');
+            } else {
+                extraFields.classList.remove('show');
+            }
+        });
+
+        rsvpForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('guestName').value.trim();
+            const phone = document.getElementById('guestPhone').value.trim();
+            const attendance = attendanceSelect.value;
+            const adult = document.getElementById('adultCount').value || 0;
+            const child = document.getElementById('childCount').value || 0;
+            const meal = document.getElementById('mealPreference').value;
+            const remarks = document.getElementById('remarks').value.trim();
+
+            if (!name) { showStatus('请填写您的姓名 🙏', 'error'); return; }
+            if (!phone) { showStatus('请填写联络号码 📱', 'error'); return; }
+            if (!attendance) { showStatus('请选择出席情况 ✅', 'error'); return; }
+
+            if (attendance === '出席 Attending') {
+                if (parseInt(adult) === 0 && parseInt(child) === 0) {
+                    showStatus('请至少填写一位成人或小孩 👨‍👩‍👧', 'error');
+                    return;
+                }
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = '提交中...';
+            showStatus('⏳ 正在提交，请稍候...', '');
+
+            try {
+                await fetch('https://script.google.com/macros/s/AKfycbyF8P8IkrAv5A5rceimlw2IIbPZiGW98WtdWXfDpL-54KAltpBwmfvm3WCltSoivFA/exec', {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name, phone, attendance, adult, child, meal, remarks,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+
+                showStatus('✅ 提交成功！感谢您的回复 🎉', 'success');
+                rsvpForm.reset();
+                extraFields.classList.remove('show');
+                document.getElementById('adultCount').value = 1;
+                document.getElementById('childCount').value = 0;
+
+            } catch (error) {
+                console.error('提交失败:', error);
+                showStatus('❌ 提交失败，请稍后重试或联系新人', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '提交回复 Submit RSVP';
+            }
+        });
+
+        function showStatus(msg, type) {
+            statusDiv.textContent = msg;
+            statusDiv.style.color = type === 'error' ? '#ff6b6b' : type === 'success' ? '#F5BE97' : '#F5BE97';
+            if (type === 'success') {
+                setTimeout(() => { statusDiv.textContent = ''; }, 8000);
+            }
+        }
+
+        // ============================================================
+        //  3. 初始化
+        // ============================================================
+
+        pages.forEach((p, i) => {
+            if (i === 0) {
+                p.classList.add('active');
+            } else {
+                p.classList.remove('active');
+            }
+        });
+        currentPage = 0;
     </script>
 
 </body>
